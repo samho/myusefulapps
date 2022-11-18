@@ -38,7 +38,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework.authtoken',
+    'rest_framework',
     'users',
+    'commontype',
+    'actors',
+    'ebooks',
+    'movies',
+    'storage',
+    'photoes',
+    'sample',
+    'utils',
 ]
 
 MIDDLEWARE = [
@@ -123,6 +133,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
@@ -130,3 +144,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOG_FILE = os.environ.get('MYMEDIA_LOG_FILE') or os.path.join(BASE_DIR, 'application.log')
 LOG_DEFAULT_LEVEL = os.environ.get('MYMEDIA_LOG_DEFAULT_LEVEL') or 'INFO'
+
+DEFAULT_PAGE_SIZE = 10

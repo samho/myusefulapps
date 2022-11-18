@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>菜鸟教程(runoob.com)</title>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js">
+    </script>
+  </head>
+  <body>
+    <div id="r_choice">
+        <input type="radio" id="id_r_1" name="r1" value="1" checked="checked">Test1</input>
+        <input type="radio" id="id_r_2" name="r1" value="2">Test2</input>
+        <input type="radio" id="id_r_3" name="r1" value="3">Test3</input>
+    </div>
+    <div id="rvalue"></div>
+    <select id="choose">
+      <option value="1">Test1</option>
+      <option value="2">Test2</option>
+      <option value="3">Test3</option>
+    </select>
+    <div id="update">
+        <select id="new">
+        </select>
+    </div>
+
+    <!--script type="text/javascript">
+      $('#choose').change(function(event) {
+      $('#update').html('This is ' + $('#choose').val() + ' and other info');
+      });
+    </script-->
+    <script type="text/javascript">
+      var r_val=""
+      $(document).ready(function(){
+          $.get('/sampleapi/sample/' + $('#choose').val(),function(data, status) {
+                  $('#new').append('<option value="name">' + data['name'] + '</option>');
+                  $('#r_choice input').each(function(){
+                      var r_id = $(this).attr('id');
+                      if ($('#' + r_id).attr("checked") == "checked") {
+                          r_val = $(this).val();
+                      }
+                  });
+                  $('#rvalue').html(r_val)
+              }
+          );
+      })
+      $('#r_choice').click(function(){
+          r_val = $("input[name='r1']:checked").val();
+          $.get('/sampleapi/sample/' + r_val,function(data, status) {
+              $('#new').empty();
+              $('#new').append('<option value="name">' + data['name'] + '</option>');
+              }
+          );
+      })
+      $('#choose').change(function(event) {
+        {#$.get('/sampleapi/sample/' + $('#choose').val(),function(data, status) {#}
+        {#    $('#new').empty();#}
+        {#    $('#new').append('<option value="name">' + data['name'] + '</option>');#}
+        {#    }#}
+        {#);#}
+        $.ajax({
+            type: "GET",
+            url: '/sampleapi/sample/' + $('#choose').val(),
+            beforeSend: function(request){
+                request.setRequestHeader("Authorization", "Token 92d95709a2974bf50378ebda6c07805daa2b6673");
+            },
+            success: function(result){
+                $('#new').empty();
+                $('#new').append('<option value="name">' + result.name + '</option>');
+                alert(result.name)
+            }
+        })
+      });
+    </script>
+
+  </body>
+</html>
