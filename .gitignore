@@ -1,0 +1,5 @@
+.idea
+*.pyc
+*.wpr
+*.wpu
+applicotion.log
