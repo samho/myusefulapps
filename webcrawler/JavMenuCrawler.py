@@ -17,15 +17,16 @@ class JAVMenuCrawler:
                    "PAGE_TO_DOWNLOAD_LIST": "page_todownload_list"
                    }
     REDIS_PASS = "m40Lpre#lfr$vlq"
-    STORE_ROOT_PATH = "d:\workspace\download"
+    STORE_ROOT_PATH = "/Users/samho/workspace/download"
     # RES_PATH = os.path.join(STORE_ROOT_PATH, time.strftime('%Y%m%d'))
     RES_PATH = os.path.join(STORE_ROOT_PATH, "")
     # TORRENT_REFERER_PRE = "http://1re.re/d.php?d="
     TORRENT_REFERER_PRE = "http://1on.re/d.php?d="
+    REDIS_HOST = "127.0.0.1"
 
-    def get_str_urlencode(self, str):
-        url = "http://javtorrent.re/tag/" + quote(str, 'utf-8')
-        return url
+    # def get_str_urlencode(self, str):
+    #     url = "http://javtorrent.re/tag/" + quote(str, 'utf-8')
+    #     return url
 
     def download(self, url):
         print("Download: ", url)
@@ -46,7 +47,7 @@ class JAVMenuCrawler:
             html = None
             if num_retries > 0:
                 if hasattr(e, 'code') and 500 <= e.code < 600:
-                    return download(url, num_retries - 1)
+                    return self.download_res(url, num_retries - 1)
         return html
 
     def get_redis_conn(self, password="", host="localhost", port=6379, db=0):
@@ -70,7 +71,7 @@ class JAVMenuCrawler:
         return is_exists_img and is_exists_torrent
 
     def get_res_count(self):
-        conn = self.get_redis_conn(host="192.168.233.128")
+        conn = self.get_redis_conn(host=self.REDIS_HOST)
         reses = conn.llen(self.REDIS_TABLE["RES_TO_DOWNLOAD_LIST"])
         self.close_redis_conn(conn)
         return reses
@@ -82,7 +83,7 @@ class JAVMenuCrawler:
         return conn.rpop(self.REDIS_TABLE["RES_TO_DOWNLOAD_LIST"])
 
     def get_pages_count(self):
-        conn = self.get_redis_conn(host="192.168.233.128")
+        conn = self.get_redis_conn(host=self.REDIS_HOST)
         pages = conn.llen(self.REDIS_TABLE["PAGE_TO_DOWNLOAD_LIST"])
         self.close_redis_conn(conn)
         return pages
@@ -133,7 +134,7 @@ class JAVMenuCrawler:
         return details_info
 
     def save_res_magnet_to_file(self):
-        conn = self.get_redis_conn(host="192.168.233.128")
+        conn = self.get_redis_conn(host=self.REDIS_HOST)
         res_value = self.get_page_download_task(conn)
         print(res_value)
         res_key = res_value.split("|")[0]
@@ -166,7 +167,7 @@ class JAVMenuCrawler:
         self.close_redis_conn(conn)
 
     def save_res_cover_to_file(self):
-        conn = self.get_redis_conn(host="192.168.233.128")
+        conn = self.get_redis_conn(host=self.REDIS_HOST)
         res_value = self.get_res_download_task(conn)
         print(res_value)
         res_key = res_value.split("|")[0]
@@ -208,34 +209,45 @@ class JAVMenuCrawler:
         return res_info
 
     def get_res_name(self, key):
-        conn = self.get_redis_conn(host="192.168.233.128")
+        conn = self.get_redis_conn(host=self.REDIS_HOST)
         res_name = conn.hget(key, "name")
         self.close_redis_conn(conn)
         return res_name
 
     def get_res_tags(self, key):
-        conn = self.get_redis_conn(host="192.168.233.128")
+        conn = self.get_redis_conn(host=self.REDIS_HOST)
         res_tags = conn.hget(key, "tags")
         self.close_redis_conn(conn)
         return str(res_tags).split(",")
 
     def get_res_group(self, key):
-        conn = self.get_redis_conn(host="192.168.233.128")
+        conn = self.get_redis_conn(host=self.REDIS_HOST)
         res_group = conn.hget(key, "group")
         self.close_redis_conn(conn)
         return res_group
+
+    # Reset redis
+    def reset_redis(self, conn):
+        if self.get_res_count() > 0:
+            conn.delele(self.REDIS_TABLE["RES_TO_DOWNLOAD_LIST"])
+
+        if self.get_pages_count() > 0:
+            conn.delele(self.REDIS_TABLE["PAGE_TO_DOWNLOAD_LIST"])
 
     # 从指定URL中，获取需要资源内容，即想要获取的movies
 
     def get_res(self, url, group="Others"):
         print(url)
         # 获取redis数据库连接，
-        conn = self.get_redis_conn(host="192.168.233.128")
+        conn = self.get_redis_conn(host=self.REDIS_HOST)
 
         # 获取页面内容
         html = self.download(url)
         if html is None:
             return None
+
+        # Reset redis task key
+        self.reset_redis(conn)
 
         # 获取所有movie的详细信息
         res_info = self.get_res_list(html)
